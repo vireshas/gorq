@@ -8,9 +8,11 @@ import (
 	"github.com/goibibo/t-coredb"
 	. "github.com/kisielk/og-rek"
 	"github.com/nu7hatch/gouuid"
+	"sync"
 )
 
 var rqRedisPool mantle.Mantle
+var rwMutex sync.RWMutex
 
 type Hargs map[string]string
 
@@ -30,6 +32,9 @@ func NewUUID() string {
 }
 
 func InitRedisPool(whichRedis string) {
+	//protect two guys trying to read rqRedisPool at once
+	rwMutex.Lock()
+	defer rwMutex.Unlock()
 	if rqRedisPool == nil {
 		rqRedisPool = db.GetRedisClientFor(whichRedis)
 	}
