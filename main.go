@@ -4,50 +4,38 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/garyburd/redigo/redis"
+	"github.com/goibibo/mantle"
+	"github.com/goibibo/t-coredb"
 	. "github.com/kisielk/og-rek"
-	"time"
+	"github.com/nu7hatch/gouuid"
 )
 
-func main() {
-	//encoding stuff
-	p := &bytes.Buffer{}
-	e := NewEncoder(p)
-	f := []interface{}{"add.add", nil, []interface{}{2, 3}, make(map[string]string)}
-	e.Encode(f)
-	fmt.Println("encoded value", string(p.Bytes()))
+var rqRedisPool mantle.Mantle
 
-	job := make(map[string]string)
-	job_id := "23"
+type Hargs map[string]string
 
-	//pushing encoded value in redis
-	c, err := redis.Dial("tcp", ":6379")
+type RQJob struct {
+	JobId    string
+	FuncName string
+	Args     []string
+	Kwargs   Hargs
+}
+
+func NewUUID() string {
+	uuid, err := uuid.NewV4()
 	if err != nil {
 		panic(err)
 	}
-	defer c.Close()
+	return uuid.String()
+}
 
-	job["data"] = string(p.Bytes())
-	queue_id := "rq:job:" + job_id
-
-	_, err = c.Do("HMSET", redis.Args{queue_id}.AddFlat(job)...)
-	if err != nil {
-		fmt.Println("HMSET", err)
+func InitRedisPool() {
+	if rqRedisPool == nil {
+		rqRedisPool = db.GetRedisClientFor("r2")
 	}
+}
 
-	_, err = c.Do("RPUSH", "rq:queue:default", job_id)
-	if err != nil {
-		fmt.Println("RPUSH", err)
-	}
-
-	time.Sleep(2 * time.Second)
-
-	fmt.Println("queue_id", queue_id)
-	result, err := redis.String(c.Do("HGET", queue_id, "result"))
-	if err != nil {
-		fmt.Println("HGETALL", err)
-	}
-	fmt.Println("values", result)
-
+func DecodeResult(result string) string {
 	//decoding encoded value
 	buf := bytes.NewBufferString(result)
 	dec := NewDecoder(buf)
@@ -56,4 +44,54 @@ func main() {
 		fmt.Println(err)
 	}
 	fmt.Println("decoded value", v)
+	return v.(string)
+}
+
+func (job *RQJob) EncodeJob() string {
+	//encoding stuff
+	p := &bytes.Buffer{}
+	e := NewEncoder(p)
+	f := []interface{}{job.FuncName, nil, job.Args, job.Kwargs}
+	e.Encode(f)
+	fmt.Println("encoded value", string(p.Bytes()))
+	return string(p.Bytes())
+}
+
+func (job *RQJob) QueueId() string {
+	return fmt.Sprintf("rq:job:%s", job.JobId)
+}
+
+func (job *RQJob) AutoGenId() {
+	job.JobId = NewUUID()
+	job.NewJob()
+}
+
+func (job *RQJob) EnqueueJob(rqJob Hargs) {
+	queueId := job.QueueId()
+	_, err := rqRedisPool.Execute("HMSET", redis.Args{queueId}.AddFlat(rqJob)...)
+	if err != nil {
+		fmt.Println("HMSET", err)
+	}
+}
+
+func (job *RQJob) NewJob() {
+	rqJob := map[string]string{"data": job.EncodeJob()}
+	job.EnqueueJob(rqJob)
+}
+
+func (job *RQJob) StartJob() {
+	_, err := rqRedisPool.Execute("RPUSH", "rq:queue:default", job.JobId)
+	if err != nil {
+		fmt.Println("RPUSH", err)
+	}
+}
+
+func (job *RQJob) Result() {
+	queueId := job.QueueId()
+	fmt.Println("queueId", queueId)
+	result, err := redis.String(rqRedisPool.Execute("HGET", queueId, "result"))
+	if err != nil {
+		fmt.Println("HGETALL", err)
+	}
+	fmt.Println("values", DecodeResult(result))
 }
