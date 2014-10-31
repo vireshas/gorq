@@ -16,9 +16,9 @@ type Hargs map[string]string
 
 type RQJob struct {
 	JobId    string
-	FuncName string
-	Args     []string
-	Kwargs   Hargs
+	funcName string
+	args     []string
+	kwargs   Hargs
 }
 
 func NewUUID() string {
@@ -51,7 +51,7 @@ func (job *RQJob) EncodeJob() string {
 	//encoding stuff
 	p := &bytes.Buffer{}
 	e := NewEncoder(p)
-	f := []interface{}{job.FuncName, nil, job.Args, job.Kwargs}
+	f := []interface{}{job.funcName, nil, job.args, job.kwargs}
 	e.Encode(f)
 	fmt.Println("encoded value", string(p.Bytes()))
 	return string(p.Bytes())
@@ -61,9 +61,8 @@ func (job *RQJob) QueueId() string {
 	return fmt.Sprintf("rq:job:%s", job.JobId)
 }
 
-func (job *RQJob) AutoGenId() {
-	job.JobId = NewUUID()
-	job.NewJob()
+func (job *RQJob) GetJobId() string {
+	return job.JobId
 }
 
 func (job *RQJob) EnqueueJob(rqJob Hargs) {
@@ -74,7 +73,11 @@ func (job *RQJob) EnqueueJob(rqJob Hargs) {
 	}
 }
 
-func (job *RQJob) NewJob() {
+func NewRQJob(funcName string, args []string, kwargs Hargs) *RQJob {
+	return &RQJob{JobId: NewUUID(), funcName: funcName, args: args, kwargs: kwargs}
+}
+
+func (job *RQJob) Enqueue() {
 	rqJob := map[string]string{"data": job.EncodeJob()}
 	job.EnqueueJob(rqJob)
 }
