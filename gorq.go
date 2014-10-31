@@ -29,9 +29,9 @@ func NewUUID() string {
 	return uuid.String()
 }
 
-func InitRedisPool() {
+func InitRedisPool(whichRedis string) {
 	if rqRedisPool == nil {
-		rqRedisPool = db.GetRedisClientFor("r2")
+		rqRedisPool = db.GetRedisClientFor(whichRedis)
 	}
 }
 
