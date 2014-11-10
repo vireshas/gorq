@@ -17,7 +17,7 @@ var rwMutex sync.RWMutex
 type Hargs map[string]string
 
 type RQJob struct {
-	JobId    string
+	Id       string
 	funcName string
 	args     []string
 	kwargs   Hargs
@@ -63,11 +63,11 @@ func (job *RQJob) EncodeJob() string {
 }
 
 func (job *RQJob) QueueId() string {
-	return fmt.Sprintf("rq:job:%s", job.JobId)
+	return fmt.Sprintf("rq:job:%s", job.Id)
 }
 
-func (job *RQJob) GetJobId() string {
-	return job.JobId
+func (job *RQJob) GetId() string {
+	return job.Id
 }
 
 func (job *RQJob) EnqueueJob(rqJob Hargs) {
@@ -79,7 +79,7 @@ func (job *RQJob) EnqueueJob(rqJob Hargs) {
 }
 
 func NewRQJob(funcName string, args []string, kwargs Hargs) *RQJob {
-	return &RQJob{JobId: NewUUID(), funcName: funcName, args: args, kwargs: kwargs}
+	return &RQJob{Id: NewUUID(), funcName: funcName, args: args, kwargs: kwargs}
 }
 
 func (job *RQJob) Enqueue() {
@@ -88,7 +88,7 @@ func (job *RQJob) Enqueue() {
 }
 
 func (job *RQJob) StartJob() {
-	_, err := rqRedisPool.Execute("RPUSH", "rq:queue:default", job.JobId)
+	_, err := rqRedisPool.Execute("RPUSH", "rq:queue:default", job.Id)
 	if err != nil {
 		fmt.Println("RPUSH", err)
 	}
