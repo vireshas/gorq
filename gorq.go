@@ -23,6 +23,10 @@ type RQJob struct {
 	kwargs   Hargs
 }
 
+func NewRQJob(funcName string, args []string, kwargs Hargs) *RQJob {
+	return &RQJob{Id: NewUUID(), funcName: funcName, args: args, kwargs: kwargs}
+}
+
 func NewUUID() string {
 	uuid, err := uuid.NewV4()
 	if err != nil {
@@ -66,20 +70,12 @@ func (job *RQJob) QueueId() string {
 	return fmt.Sprintf("rq:job:%s", job.Id)
 }
 
-func (job *RQJob) GetId() string {
-	return job.Id
-}
-
 func (job *RQJob) EnqueueJob(rqJob Hargs) {
 	queueId := job.QueueId()
 	_, err := rqRedisPool.Execute("HMSET", redis.Args{queueId}.AddFlat(rqJob)...)
 	if err != nil {
 		fmt.Println("HMSET", err)
 	}
-}
-
-func NewRQJob(funcName string, args []string, kwargs Hargs) *RQJob {
-	return &RQJob{Id: NewUUID(), funcName: funcName, args: args, kwargs: kwargs}
 }
 
 func (job *RQJob) Enqueue() {
