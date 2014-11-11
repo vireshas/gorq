@@ -19,7 +19,7 @@ Example;
                 kwargs := map[string]string{"pubsub": "true"}
                 job := gorq.NewRQJob("add.add", []string{"14", "14"}, kwargs)
                 job.Enqueue()
-                job.StartJob()
+                job.Start()
                 time.Sleep(2 * time.Second)
                 fmt.Println("fetching results")
                 job.Result()
