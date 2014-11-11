@@ -87,7 +87,7 @@ func (job *RQJob) Enqueue() {
 	job.EnqueueJob(rqJob)
 }
 
-func (job *RQJob) StartJob() {
+func (job *RQJob) Start() {
 	_, err := rqRedisPool.Execute("RPUSH", "rq:queue:default", job.Id)
 	if err != nil {
 		fmt.Println("RPUSH", err)
