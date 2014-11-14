@@ -16,17 +16,6 @@ var rwMutex sync.RWMutex
 
 type Hargs map[string]string
 
-type RQJob struct {
-	Id       string
-	funcName string
-	args     []string
-	kwargs   Hargs
-}
-
-func NewRQJob(funcName string, args []string, kwargs Hargs) *RQJob {
-	return &RQJob{Id: NewUUID(), funcName: funcName, args: args, kwargs: kwargs}
-}
-
 func NewUUID() string {
 	uuid, err := uuid.NewV4()
 	if err != nil {
@@ -54,6 +43,17 @@ func DecodeResult(result string) string {
 	}
 	fmt.Println("decoded value", v)
 	return v.(string)
+}
+
+type RQJob struct {
+	Id       string
+	funcName string
+	args     []string
+	kwargs   Hargs
+}
+
+func NewRQJob(funcName string, args []string, kwargs Hargs) *RQJob {
+	return &RQJob{Id: NewUUID(), funcName: funcName, args: args, kwargs: kwargs}
 }
 
 func (job *RQJob) EncodeJob() string {
