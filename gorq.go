@@ -35,12 +35,12 @@ func NewUUID() string {
 	return uuid.String()
 }
 
-func InitRedisPool(whichRedis string) {
+func InitRedisPool(vertical string) {
 	//protect two guys trying to read rqRedisPool at once
 	rwMutex.Lock()
 	defer rwMutex.Unlock()
 	if rqRedisPool == nil {
-		rqRedisPool = db.GetRedisClientFor(whichRedis)
+		rqRedisPool = db.GetRedisClientFor(vertical)
 	}
 }
 
