@@ -45,6 +45,7 @@ func DecodeResult(result string) string {
 	return v.(string)
 }
 
+//TODO: make RQJob#Id read only
 type RQJob struct {
 	Id       string
 	funcName string
@@ -78,6 +79,7 @@ func (job *RQJob) EnqueueJob(rqJob Hargs) {
 	}
 }
 
+//TODO: Expose a EnQAndStart method
 func (job *RQJob) Enqueue() {
 	rqJob := map[string]string{"data": job.EncodeJob()}
 	job.EnqueueJob(rqJob)
@@ -90,6 +92,7 @@ func (job *RQJob) Start() {
 	}
 }
 
+//TODO: key doesn't exist case; display nil if job is not yet processed
 func (job *RQJob) Result() {
 	queueId := job.QueueId()
 	fmt.Println("queueId", queueId)
