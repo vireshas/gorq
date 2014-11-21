@@ -51,12 +51,12 @@ func NewUUID() string {
 }
 
 //This creates a redis pool
-func InitRedisPool(whichRedis string) {
+func InitRedisPool(vertical string) {
 	//protect two guys trying to read rqRedisPool at once
 	rwMutex.Lock()
 	defer rwMutex.Unlock()
 	if rqRedisPool == nil {
-		rqRedisPool = db.GetRedisClientFor(whichRedis)
+		rqRedisPool = db.GetRedisClientFor(vertical)
 	}
 }
 
@@ -69,7 +69,6 @@ func DecodeResult(result string) string {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("decoded value", v)
 	return v.(string)
 }
 
@@ -81,7 +80,6 @@ func (job *RQJob) EncodeJob() string {
 	e := NewEncoder(p)
 	f := []interface{}{job.funcName, nil, job.args, job.kwargs}
 	e.Encode(f)
-	fmt.Println("encoded value", string(p.Bytes()))
 	return string(p.Bytes())
 }
 
@@ -102,6 +100,7 @@ func (job *RQJob) EnqueueJob(rqJob Hargs) {
 }
 
 //This method encodes and then enqueues the jobs in Redis
+//TODO: Expose a EnQAndStart method
 func (job *RQJob) Enqueue() {
 	rqJob := map[string]string{"data": job.EncodeJob()}
 	job.EnqueueJob(rqJob)
@@ -116,12 +115,12 @@ func (job *RQJob) Start() {
 }
 
 //This methid returns the result of the job
-func (job *RQJob) Result() {
+//TODO: key doesn't exist case; display nil if job is not yet processed
+func (job *RQJob) Result() string {
 	queueId := job.QueueId()
-	fmt.Println("queueId", queueId)
 	result, err := redis.String(rqRedisPool.Execute("HGET", queueId, "result"))
 	if err != nil {
-		fmt.Println("HGETALL", err)
+		return "nil"
 	}
-	fmt.Println("values", DecodeResult(result))
+	return DecodeResult(result)
 }
