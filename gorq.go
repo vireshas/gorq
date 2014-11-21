@@ -26,6 +26,8 @@ type Hargs map[string]string
    args: can be of type string only
    kwargs: this is of type map[string]string
 */
+//TODO: enqueues all the jobs in default queue
+//      add support to add a job to other queues
 type RQJob struct {
 	Id       string
 	funcName string
