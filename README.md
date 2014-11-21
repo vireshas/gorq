@@ -22,5 +22,5 @@ Example;
                 job.Start()
                 time.Sleep(2 * time.Second)
                 fmt.Println("fetching results")
-                job.Result()
+                fmt.Println(job.Result())
         }
