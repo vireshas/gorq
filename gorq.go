@@ -34,15 +34,16 @@ type RQJob struct {
 	kwargs   Hargs
 }
 
-//Creates a new RQ job
+//Creates a new RQ job.
 func NewRQJob(funcName string, args []string, kwargs Hargs) *RQJob {
 	return &RQJob{Id: NewUUID(), funcName: funcName, args: args, kwargs: kwargs}
 }
 
-//Generates unique id for a job
-//TODO: check if we need a distrubted uuid generator so that
-//      jobs enqueued from multiple servers are unique
-//      Jobs in RQ expire after 442ms to I am assuming this wouldn't be an issue
+//Generates unique id for a job.
+//TODO:
+//Check if we need a distrubted uuid generator.
+//Jobs enqueued from multiple servers are unique.
+//Jobs in RQ expire after 442ms - assuming this wouldn't be an issue.
 func NewUUID() string {
 	uuid, err := uuid.NewV4()
 	if err != nil {
@@ -51,7 +52,7 @@ func NewUUID() string {
 	return uuid.String()
 }
 
-//This creates a redis pool
+//This creates a redis pool.
 func InitRedisPool(vertical string) {
 	//protect two guys trying to read rqRedisPool at once
 	rwMutex.Lock()
@@ -73,8 +74,8 @@ func DecodeResult(result string) string {
 	return v.(string)
 }
 
-//This method encodes a string in pickle format
-//RQ expects python functions to be pickle encoded
+//This method encodes a string in pickle format.
+//RQ expects python functions to be pickle encoded.
 func (job *RQJob) EncodeJob() string {
 	//encoding stuff
 	p := &bytes.Buffer{}
@@ -84,8 +85,8 @@ func (job *RQJob) EncodeJob() string {
 	return string(p.Bytes())
 }
 
-//This was supposed to be a getter for job's id
-//I then made job Id public
+//This was supposed to be a getter for job's id.
+//I then made job Id public.
 //TODO: make id private and add getters, setters
 func (job *RQJob) QueueId() string {
 	return fmt.Sprintf("rq:job:%s", job.Id)
