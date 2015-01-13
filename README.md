@@ -1,7 +1,8 @@
 ####Go RQ Client  
 Go client to enqueue jobs in RQ.  
 
-Example;
+Example:
+
         package main
 
         import (
