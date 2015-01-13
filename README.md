@@ -25,7 +25,7 @@ Example:
         }
 
 
-Check this gist for RQ internals: https://github.com/vireshas/gorq-rcvr  
+Check this gist for RQ internals: https://gist.github.com/vireshas/72f20fe09f5bcdfdcb0c    
 
 You might to use it along with https://github.com/vireshas/gorq-rcvr  
 
